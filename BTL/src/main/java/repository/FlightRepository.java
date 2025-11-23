@@ -1,29 +1,31 @@
 package repository;
+import common.DateUtils;
 import model.Flight;
-import java.io.*;
-import java.time.LocalDateTime;
-import java.util.*;
+import java.util.List;
 
-public class FlightRepository implements Persistable<Flight> {
-    private static final String PATH = "src/main/resources/data/flights.csv";
-
-    @Override
-    public List<Flight> load() {
-        List<Flight> list = new ArrayList<>();
-        try (BufferedReader br = new BufferedReader(new FileReader(PATH))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                String[] d = line.split(",");
-                Flight f = new Flight(d[0], d[1], LocalDateTime.parse(d[2]), Double.parseDouble(d[3]));
-                list.add(f);
-            }
-        } catch (Exception e) { e.printStackTrace(); }
-        return list;
+public class FlightRepository extends CsvRepository<Flight> {
+    public FlightRepository() {
+        super("src/main/resources/data/flights.csv");
     }
 
     @Override
-    public void save(List<Flight> data) {
-
+    protected Flight fromCsv(String line) {
+        String[] data = line.split(",");
+        return new Flight(
+                data[0], data[1],
+                DateUtils.fromString(data[2]),
+                Double.parseDouble(data[3])
+        );
     }
-    public List<Flight> getAll() { return load(); }
+
+    @Override
+    protected String toCsv(Flight entity) {
+        return String.join(",", entity.getId(), entity.getRoute(),
+                DateUtils.toString(entity.getDepartureTime()),
+                String.valueOf(entity.getBasePrice()));
+    }
+
+    public Flight findById(String id) {
+        return items.stream().filter(f -> f.getId().equalsIgnoreCase(id)).findFirst().orElse(null);
+    }
 }
