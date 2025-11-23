@@ -1,4 +1,7 @@
 package repository;
+import java.util.List;
 
-public class Persistable {
+public interface Persistable<T> {
+    void save(List<T> data);
+    List<T> load();
 }

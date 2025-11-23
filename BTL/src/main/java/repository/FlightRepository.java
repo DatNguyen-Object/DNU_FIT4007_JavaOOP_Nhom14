@@ -1,24 +1,31 @@
 package repository;
+import common.DateUtils;
 import model.Flight;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
-public class FlightRepository {
-    private List<Flight> flights = new ArrayList<>();
-
+public class FlightRepository extends CsvRepository<Flight> {
     public FlightRepository() {
-        // FAKE DATA: Chưa đọc file, tạo tay để test logic
-        flights.add(new Flight("VN101", "HAN-SGN", LocalDateTime.now(), 1500000));
-        flights.add(new Flight("VJ202", "HAN-DAD", LocalDateTime.now(), 800000));
+        super("src/main/resources/data/flights.csv");
     }
 
-    public List<Flight> getAll() { return flights; }
+    @Override
+    protected Flight fromCsv(String line) {
+        String[] data = line.split(",");
+        return new Flight(
+                data[0], data[1],
+                DateUtils.fromString(data[2]),
+                Double.parseDouble(data[3])
+        );
+    }
+
+    @Override
+    protected String toCsv(Flight entity) {
+        return String.join(",", entity.getId(), entity.getRoute(),
+                DateUtils.toString(entity.getDepartureTime()),
+                String.valueOf(entity.getBasePrice()));
+    }
 
     public Flight findById(String id) {
-        for (Flight f : flights) {
-            if (f.getId().equalsIgnoreCase(id)) return f;
-        }
-        return null;
+        return items.stream().filter(f -> f.getId().equalsIgnoreCase(id)).findFirst().orElse(null);
     }
 }
