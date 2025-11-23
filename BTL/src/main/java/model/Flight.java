@@ -4,7 +4,7 @@ import java.util.List;
 public class Flight {
     public String id;
     public String route;
-    public String date; // Dùng String là kém chuyên nghiệp (khó tính toán giờ)
+    public String date;
     public double price;
     public List<Seat> seats;
 
