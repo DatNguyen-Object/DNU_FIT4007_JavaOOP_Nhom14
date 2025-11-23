@@ -1,0 +1,37 @@
+name: Java CI (Kiểm tra Code tự động)
+
+# 1. Sự kiện kích hoạt (Khi nào chạy?)
+on:
+  push:
+    branches: [ "main", "develop" ] # Chạy khi push vào main hoặc develop
+  pull_request:
+    branches: [ "main", "develop" ] # Chạy khi tạo Pull Request
+
+# 2. Các công việc cần làm
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest  # Mượn một máy tính chạy Ubuntu của GitHub để test
+
+    steps:
+      # Bước A: Tải code từ kho về máy ảo
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Bước B: Cài đặt Java 17 trên máy ảo
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      # Bước C: Thử biên dịch (Compile) toàn bộ code
+      # Nếu code lỗi cú pháp, bước này sẽ báo đỏ (Fail)
+      - name: Compile Java Code
+        run: |
+          mkdir -p out
+          javac -d out -sourcepath src/main/java src/main/java/Main.java
+
+      # Bước D: Chạy thử (Optional)
+      # Chạy thử Main để xem có crash ngay khi khởi động không
+      - name: Run Application (Smoke Test)
+        run: java -cp out Main < /dev/null
