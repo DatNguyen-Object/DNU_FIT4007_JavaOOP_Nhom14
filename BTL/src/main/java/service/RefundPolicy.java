@@ -1,4 +1,5 @@
 package service;
 
-public class RefundPolicy {
+public interface RefundPolicy {
+    float calculateRefund(float price, int hours);
 }
