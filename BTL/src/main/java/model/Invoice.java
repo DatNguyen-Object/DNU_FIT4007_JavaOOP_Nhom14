@@ -1,22 +1,42 @@
-import view.MenuConsole;
+package model;
 
-public class Main {
-    public static void main(String[] args) {
-        System.out.println("=========================================");
-        System.out.println("   AIRLINE RESERVATION SYSTEM (v1.0)   ");
-        System.out.println("   Developed by Group 14: Viet Anh, Dat, Quyet");
-        System.out.println("=========================================");
+import common.DateUtils;
+import java.time.LocalDateTime;
 
-        try {
-            // Khởi động ứng dụng
-            MenuConsole app = new MenuConsole();
-            app.start();
-        } catch (Exception e) {
-            // Bắt lỗi không lường trước (Global Exception Handler)
-            System.err.println("CRITICAL ERROR: Hệ thống gặp lỗi không mong muốn!");
-            e.printStackTrace();
-        } finally {
-            System.out.println("\n>>> Cảm ơn quý khách đã sử dụng dịch vụ!");
-        }
+public class Invoice {
+    private String id;
+    private String ticketId;
+    private double amount;
+    private LocalDateTime paymentTime;
+    private String paymentMethod; // CASH, BANKING, CREDIT_CARD
+
+    public Invoice(String id, String ticketId, double amount, LocalDateTime paymentTime, String paymentMethod) {
+        this.id = id;
+        this.ticketId = ticketId;
+        this.amount = amount;
+        this.paymentTime = paymentTime;
+        this.paymentMethod = paymentMethod;
+    }
+
+    public String getId() { return id; }
+    public String getTicketId() { return ticketId; }
+    public double getAmount() { return amount; }
+    public LocalDateTime getPaymentTime() { return paymentTime; }
+    public String getPaymentMethod() { return paymentMethod; }
+
+    // Hàm hỗ trợ ghi CSV (Repository sẽ gọi hàm này)
+    public String toCsv() {
+        return String.join(",",
+                id,
+                ticketId,
+                String.valueOf(amount),
+                DateUtils.toString(paymentTime),
+                paymentMethod
+        );
+    }
+
+    @Override
+    public String toString() {
+        return String.format("Invoice[%s]: %s - %,.0f VND (%s)", id, ticketId, amount, paymentMethod);
     }
 }
