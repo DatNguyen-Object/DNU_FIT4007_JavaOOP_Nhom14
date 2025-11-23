@@ -1,7 +1,7 @@
 package model;
 
-import common.DateUtils;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 public class Invoice {
     private String id;
@@ -9,6 +9,9 @@ public class Invoice {
     private double amount;
     private LocalDateTime paymentTime;
     private String paymentMethod;
+
+    // Định dạng ngày giờ riêng
+    public static final DateTimeFormatter FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
     public Invoice(String id, String ticketId, double amount, LocalDateTime paymentTime, String paymentMethod) {
         this.id = id;
@@ -19,23 +22,14 @@ public class Invoice {
     }
 
     public String getId() { return id; }
-    public String getTicketId() { return ticketId; }
-    public double getAmount() { return amount; }
-    public LocalDateTime getPaymentTime() { return paymentTime; }
-    public String getPaymentMethod() { return paymentMethod; }
 
     public String toCsv() {
         return String.join(",",
                 id,
                 ticketId,
-                String.valueOf(amount),
-                DateUtils.toString(paymentTime),
+                String.format("%.0f", amount),
+                paymentTime.format(FMT), // Tự format tại đây
                 paymentMethod
         );
-    }
-
-    @Override
-    public String toString() {
-        return String.format("Invoice[%s]: %s - %,.0f VND (%s)", id, ticketId, amount, paymentMethod);
     }
 }
