@@ -1,36 +1,33 @@
 package common;
 
-import java.io.FileReader;
-import java.io.FileWriter;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Scanner;
 
 public class FileUtils {
-    public static List<String> readFile(String path) {
-        List<String> list = new ArrayList<>();
-        try {
-            FileReader fr = new FileReader(path);
-            Scanner sc = new Scanner(fr);
-            while(sc.hasNextLine()) {
-                list.add(sc.nextLine());
+    public static List<String> read(String path) {
+        List<String> lines = new ArrayList<>();
+        try (BufferedReader br = new BufferedReader(new FileReader(path))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                if (!line.trim().isEmpty()) {
+                    lines.add(line);
+                }
             }
-            fr.close();
-        } catch (Exception e) {
-            System.out.println("Lỗi đọc file");
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-        return list;
+        return lines;
     }
-
-    public static void writeFile(String path, List<String> data) {
-        try {
-            FileWriter fw = new FileWriter(path);
-            for (String s : data) {
-                fw.write(s + "\n");
+    public static void write(String path, List<String> lines) {
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(path))) {
+            for (String line : lines) {
+                bw.write(line);
+                bw.newLine();
             }
-            fw.close();
-        } catch (Exception e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
 }
+
