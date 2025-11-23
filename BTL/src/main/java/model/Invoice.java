@@ -8,7 +8,7 @@ public class Invoice {
     private String ticketId;
     private double amount;
     private LocalDateTime paymentTime;
-    private String paymentMethod; // CASH, BANKING, CREDIT_CARD
+    private String paymentMethod;
 
     public Invoice(String id, String ticketId, double amount, LocalDateTime paymentTime, String paymentMethod) {
         this.id = id;
@@ -24,7 +24,6 @@ public class Invoice {
     public LocalDateTime getPaymentTime() { return paymentTime; }
     public String getPaymentMethod() { return paymentMethod; }
 
-    // Hàm hỗ trợ ghi CSV (Repository sẽ gọi hàm này)
     public String toCsv() {
         return String.join(",",
                 id,
