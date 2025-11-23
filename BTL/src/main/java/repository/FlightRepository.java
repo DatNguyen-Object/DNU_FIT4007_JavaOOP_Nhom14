@@ -1,16 +1,29 @@
 package repository;
 import model.Flight;
+import java.io.*;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
-public class FlightRepository {
-    private List<Flight> flights = new ArrayList<>();
+public class FlightRepository implements Persistable<Flight> {
+    private static final String PATH = "src/main/resources/data/flights.csv";
 
-    public FlightRepository() {
-        flights.add(new Flight("VN001", "HAN-SGN", LocalDateTime.now().plusDays(1), 1500000));
-        flights.add(new Flight("VJ202", "HAN-DAD", LocalDateTime.now().plusDays(2), 800000));
+    @Override
+    public List<Flight> load() {
+        List<Flight> list = new ArrayList<>();
+        try (BufferedReader br = new BufferedReader(new FileReader(PATH))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                String[] d = line.split(",");
+                Flight f = new Flight(d[0], d[1], LocalDateTime.parse(d[2]), Double.parseDouble(d[3]));
+                list.add(f);
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+        return list;
     }
 
-    public List<Flight> getAll() { return flights; }
+    @Override
+    public void save(List<Flight> data) {
+
+    }
+    public List<Flight> getAll() { return load(); }
 }
