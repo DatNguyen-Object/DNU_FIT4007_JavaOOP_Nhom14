@@ -6,7 +6,7 @@ import java.util.List;
 
 public class SeatRepository extends CsvRepository<Seat> {
     public SeatRepository() {
-        super("src/main/resources/data/seats.csv");
+        super("BTL/src/main/resources/data/seats.csv");
     }
 
     @Override

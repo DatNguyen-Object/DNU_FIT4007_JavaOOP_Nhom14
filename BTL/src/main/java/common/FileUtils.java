@@ -9,14 +9,18 @@ public class FileUtils {
         List<String> lines = new ArrayList<>();
         File file = new File(path);
 
+        // In ra đường dẫn tuyệt đối để bạn biết chính xác máy đang đọc file ở đâu
+        System.out.println(">> CHECK FILE: " + file.getAbsolutePath());
+
         if (!file.exists()) {
             try {
+                System.out.println("   [!] File chua ton tai. Dang tao moi...");
                 if (file.getParentFile() != null) {
                     file.getParentFile().mkdirs();
                 }
                 file.createNewFile();
             } catch (IOException e) {
-                System.out.println("Lỗi tạo file: " + path);
+                System.out.println("   [x] Loi tao file: " + path);
             }
             return lines;
         }
@@ -33,8 +37,11 @@ public class FileUtils {
             br.close();
             fr.close();
         } catch (Exception e) {
-            System.out.println("Lỗi đọc file: " + e.getMessage());
+            System.out.println("   [x] Loi doc file: " + e.getMessage());
         }
+
+        // In ra số lượng dòng đọc được
+        System.out.println("   -> Da doc: " + lines.size() + " dong du lieu.");
         return lines;
     }
 
@@ -49,7 +56,7 @@ public class FileUtils {
             bw.close();
             fw.close();
         } catch (Exception e) {
-            System.out.println("Lỗi ghi file: " + e.getMessage());
+            System.out.println("Loi ghi file: " + e.getMessage());
         }
     }
 }

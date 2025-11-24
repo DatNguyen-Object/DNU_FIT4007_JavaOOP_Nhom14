@@ -4,7 +4,7 @@ import model.Customer;
 
 public class CustomerRepository extends CsvRepository<Customer> {
     public CustomerRepository() {
-        super("src/main/resources/data/customers.csv");
+        super("BTL/src/main/resources/data/customers.csv");
     }
 
     @Override

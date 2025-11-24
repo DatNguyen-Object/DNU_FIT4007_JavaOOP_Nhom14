@@ -4,7 +4,7 @@ import model.Ticket;
 
 public class TicketRepository extends CsvRepository<Ticket> {
     public TicketRepository() {
-        super("src/main/resources/data/tickets.csv");
+        super("BTL/src/main/resources/data/tickets.csv");
     }
 
     @Override

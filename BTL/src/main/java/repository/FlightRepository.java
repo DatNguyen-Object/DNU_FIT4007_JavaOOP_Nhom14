@@ -6,7 +6,7 @@ import model.Flight;
 
 public class FlightRepository extends CsvRepository<Flight> {
     public FlightRepository() {
-        super("src/main/resources/data/flights.csv");
+        super("BTL/src/main/resources/data/flights.csv");
     }
 
     @Override

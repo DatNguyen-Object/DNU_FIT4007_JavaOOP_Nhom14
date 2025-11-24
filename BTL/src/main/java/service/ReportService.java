@@ -86,7 +86,7 @@ public class ReportService {
             System.out.println("Vé không tồn tại");
             return;
         }
-        try (PrintWriter pw = new PrintWriter(new FileWriter("src/main/resources/data/ticket_" + tid + ".csv"))) {
+        try (PrintWriter pw = new PrintWriter(new FileWriter("BTL/src/main/resources/data/ticket_" + tid + ".csv"))) {
             pw.println("ID,FLIGHT,SEAT,CUSTOMER,PRICE,STATUS");
             pw.println(t.toCsv());
             System.out.println("Xuất vé thành công!");

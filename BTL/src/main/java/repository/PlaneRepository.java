@@ -4,7 +4,7 @@ import model.Plane;
 
 public class PlaneRepository extends CsvRepository<Plane> {
     public PlaneRepository() {
-        super("src/main/resources/data/planes.csv");
+        super("BTL/src/main/resources/data/planes.csv");
     }
 
     @Override

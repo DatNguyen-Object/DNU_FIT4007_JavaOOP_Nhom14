@@ -5,7 +5,7 @@ import common.DateUtils;
 
 public class InvoiceRepository extends CsvRepository<Invoice> {
     public InvoiceRepository() {
-        super("src/main/resources/data/invoices.csv");
+        super("BTL/src/main/resources/data/invoices.csv");
     }
 
     @Override
