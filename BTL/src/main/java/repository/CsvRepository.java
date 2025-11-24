@@ -1,82 +1,66 @@
 package repository;
 
-import java.io.*;
+import common.FileUtils;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
-// 👇 QUAN TRỌNG: Phải có từ khóa "abstract" ở đây
 public abstract class CsvRepository<T> implements Persistable<T> {
     protected String filePath;
     protected List<T> items;
 
     public CsvRepository(String filePath) {
         this.filePath = filePath;
+        this.items = new ArrayList<>();
         this.items = load();
     }
 
-    // Các hàm trừu tượng để lớp con định nghĩa
     protected abstract T fromCsv(String line);
     protected abstract String toCsv(T entity);
 
-    // Hàm đọc file (Logic chung)
+    @Override
     public List<T> load() {
-        List<T> list = new ArrayList<>();
-        File file = new File(filePath);
-
-        if (!file.exists()) return list;
-
-        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                if (!line.trim().isEmpty()) {
-                    try {
-                        T obj = fromCsv(line);
-                        if (obj != null) list.add(obj);
-                    } catch (Exception e) {
-                        // Bỏ qua dòng lỗi
-                    }
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
+        List<T> result = new ArrayList<>();
+        List<String> lines = FileUtils.read(filePath);
+        for (String line : lines) {
+            result.add(fromCsv(line));
         }
-        return list;
+        return result;
     }
 
-    // Hàm ghi file (Logic chung)
-    public void save(List<T> data) {
-        try {
-            File file = new File(filePath);
-            if (!file.exists()) {
-                file.getParentFile().mkdirs();
-                file.createNewFile();
-            }
-            try (BufferedWriter bw = new BufferedWriter(new FileWriter(file))) {
-                for (T item : data) {
-                    bw.write(toCsv(item));
-                    bw.newLine();
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
+    protected void saveToFile() {
+        List<String> lines = new ArrayList<>();
+        for (T item : this.items) {
+            lines.add(toCsv(item));
         }
+        FileUtils.write(filePath, lines);
     }
 
-    // Implement các hàm của Interface Persistable
     @Override
     public List<T> getAll() {
-        return items;
+        return this.items;
     }
 
     @Override
     public void add(T item) {
-        items.add(item);
-        save(items);
+        this.items.add(item);
+        saveToFile();
     }
 
-    // 👇 QUAN TRỌNG: Khai báo lại hàm này dưới dạng abstract để hết lỗi
     @Override
-    public abstract void update(T item);
+    public void save(List<T> data) {
+        this.items = data;
+        saveToFile();
+    }
+
+    @Override
+    public void update(T item) {
+        saveToFile();
+    }
+
+    @Override
+    public void delete(T item) {
+        this.items.remove(item);
+        saveToFile();
+    }
 }

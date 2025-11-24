@@ -3,73 +3,106 @@ package service;
 import model.*;
 import repository.*;
 import exception.*;
+import common.DateUtils;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 
 public class BookingService implements RefundPolicy {
-    private FlightRepository flightRepo;
-    private TicketRepository ticketRepo;
-    private CustomerRepository custRepo;
+    private FlightRepository fRepo;
+    private SeatRepository sRepo;
+    private TicketRepository tRepo;
+    private CustomerRepository cRepo;
+    private InvoiceRepository iRepo;
 
-    public BookingService(FlightRepository fr, TicketRepository tr, CustomerRepository cr) {
-        this.flightRepo = fr;
-        this.ticketRepo = tr;
-        this.custRepo = cr;
+    public BookingService(FlightRepository f, SeatRepository s, TicketRepository t, CustomerRepository c, InvoiceRepository i) {
+        this.fRepo = f;
+        this.sRepo = s;
+        this.tRepo = t;
+        this.cRepo = c;
+        this.iRepo = i;
     }
 
-    public void loadBookedSeats() {
-        for (Ticket t : ticketRepo.getAll()) {
-            if ("BOOKED".equals(t.getStatus())) {
-                Flight f = flightRepo.findById(t.getFlightId());
-                if (f != null) {
-                    f.getSeats().stream()
-                            .filter(s -> s.getId().equals(t.getSeatId()))
-                            .forEach(s -> s.setBooked(true));
-                }
-            }
-        }
+    public void loadSeatsForFlight(Flight f) {
+        f.setSeats(sRepo.getByFlightId(f.getId()));
     }
 
     public double bookTicket(String fid, String sid, String cid) throws Exception {
-        loadBookedSeats();
-        Flight f = flightRepo.findById(fid);
-
-        if (f == null) throw new FlightNotFoundException("Mã chuyến bay sai: " + fid);
-
-        // 👇 SỬA: Dùng Exception thường (vì đã xóa CustomerNotFoundException)
-        if (custRepo.findById(cid) == null) {
-            throw new Exception("Khách hàng mã " + cid + " không tồn tại!");
+        Flight f = fRepo.findById(fid);
+        if (f == null) {
+            throw new FlightNotFoundException("Không tìm thấy chuyến bay");
+        }
+        if (cRepo.findById(cid) == null) {
+            throw new CustomerNotFoundException("Khách hàng không tồn tại");
         }
 
-        Seat s = f.getSeats().stream()
-                .filter(seat -> seat.getId().equalsIgnoreCase(sid))
-                .findFirst()
-                .orElseThrow(() -> new Exception("Mã ghế sai: " + sid));
+        Seat s = sRepo.findByFlightAndNumber(fid, sid);
+        if (s == null) {
+            throw new Exception("Ghế không tồn tại");
+        }
+        if (s.isBooked()) {
+            throw new SeatAlreadyBookedException("Ghế đã đặt");
+        }
 
-        if (s.isBooked()) throw new SeatAlreadyBookedException("Ghế " + sid + " đã có người đặt.");
+        double total = f.getBasePrice() + s.getSurcharge();
 
-        double price = f.getBasePrice() + s.getSurcharge();
-        Ticket t = new Ticket(UUID.randomUUID().toString().substring(0,8), fid, sid, cid, price, "BOOKED");
-        ticketRepo.add(t);
         s.setBooked(true);
-        return price;
+        sRepo.update(s);
+
+        String tid = "T-" + System.currentTimeMillis();
+        Ticket t = new Ticket(tid, fid, s.getId(), cid, total, "BOOKED");
+        tRepo.add(t);
+
+        Invoice inv = new Invoice("INV-" + tid, tid, total, LocalDateTime.now());
+        iRepo.add(inv);
+
+        return total;
     }
 
     public double cancelTicket(String tid) throws Exception {
-        Ticket t = ticketRepo.findById(tid);
-        if (t == null) throw new Exception("Vé không tồn tại");
-        if ("CANCELLED".equals(t.getStatus())) throw new Exception("Vé đã hủy rồi");
+        Ticket t = tRepo.findById(tid);
+        if (t == null) {
+            throw new Exception("Vé không tồn tại");
+        }
+        if (t.getStatus().equals("CANCELLED")) {
+            throw new Exception("Vé đã hủy");
+        }
 
-        Flight f = flightRepo.findById(t.getFlightId());
+        Flight f = fRepo.findById(t.getFlightId());
         long hours = ChronoUnit.HOURS.between(LocalDateTime.now(), f.getDepartureTime());
 
-        if (hours < 0) throw new InvalidCancellationException("Máy bay đã cất cánh.");
+        if (hours < 0) {
+            throw new InvalidCancellationException("Đã bay, không thể hủy");
+        }
 
         double refund = calculateRefund(t.getPrice(), hours);
         t.setStatus("CANCELLED");
-        ticketRepo.update(t);
+        tRepo.update(t);
+
+        Seat s = sRepo.findById(t.getSeatId());
+        if (s != null) {
+            s.setBooked(false);
+            sRepo.update(s);
+        }
         return refund;
+    }
+
+    public void suggestFlights(String dateStr, String dest) {
+        System.out.println("--- GỢI Ý CHUYẾN BAY ---");
+        boolean found = false;
+        for (Flight f : fRepo.getAll()) {
+            String fDate = common.DateUtils.toString(f.getDepartureTime());
+            if (fDate.startsWith(dateStr) && f.getRoute().endsWith(dest)) {
+                long emptySeats = sRepo.getByFlightId(f.getId()).stream().filter(s -> !s.isBooked()).count();
+                if (emptySeats > 0) {
+                    System.out.printf("Chuyến %s | Giờ: %s | Giá: %.0f | Còn %d ghế\n", f.getId(), fDate, f.getBasePrice(), emptySeats);
+                    found = true;
+                }
+            }
+        }
+        if (!found) {
+            System.out.println("Không tìm thấy chuyến bay phù hợp!");
+        }
     }
 
     @Override
